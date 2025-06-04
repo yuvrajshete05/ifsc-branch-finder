@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bank Branch Explorer</title>
+  <style>
+    /* ==== LIGHT THEME ==== */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 0;
+      background-color: #f0f4f8; /* soft light blue-gray */
+      color: #222;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    .header {
+      background: linear-gradient(90deg, #3f51b5, #2196f3);
+      color: white;
+      padding: 22px 0;
+      text-align: center;
+      font-size: 30px;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      box-shadow: 0 3px 8px rgb(33 150 243 / 0.5);
+      z-index: 100;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 25px 50px;
+    }
+    .search-section h2 {
+      color: #3f51b5;
+      font-weight: 700;
+      margin-bottom: 18px;
+      letter-spacing: 0.02em;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 17px;
+      border-radius: 10px;
+      border: 2px solid #bbdefb;
+      background-color: white;
+      color: #222;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 2px 8px rgb(33 150 243 / 0.2);
+    }
+    input[type="text"]:focus {
+      border-color: #1e88e5;
+      outline: none;
+      box-shadow: 0 0 12px #1e88e5aa;
+    }
+
+    .bank-list, .branch-details {
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.08);
+      padding: 30px 35px;
+      margin-top: 30px;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-weight: 700;
+      color: #1e88e5;
+      letter-spacing: 0.02em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+      letter-spacing: 0.02em;
+    }
+    th, td {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    th {
+      background-color: #e3f2fd;
+      color: #1565c0;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 8px 8px 0 0;
+      transition: background-color 0.3s ease;
+    }
+    th:hover {
+      background-color: #90caf9;
+      color: white;
+    }
+    td {
+      color: #444;
+    }
+
+    /* ==== DARK THEME ==== */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    body.dark-mode .header {
+      background: linear-gradient(90deg, #0d47a1, #2196f3);
+      color: #bbdefb;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.9);
+    }
+    body.dark-mode input[type="text"] {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #ddd;
+      box-shadow: 0 2px 8px rgb(33 150 243 / 0.4);
+    }
+    body.dark-mode input[type="text"]:focus {
+      border-color: #90caf9;
+      box-shadow: 0 0 12px #90caf9bb;
+    }
+    body.dark-mode .bank-list, 
+    body.dark-mode .branch-details {
+      background-color: #212121;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.9);
+      color: #e0e0e0;
+    }
+    body.dark-mode th {
+      background-color: #263238;
+      color: #80deea;
+      border-radius: 8px 8px 0 0;
+    }
+    body.dark-mode th:hover {
+      background-color: #4dd0e1;
+      color: #004d40;
+    }
+    body.dark-mode td {
+      border-bottom: 1px solid #37474f;
+      color: #ccc;
+    }
+
+    /* Toggle button */
+    .toggle-btn {
+      background-color: #1e88e5;
+      color: white;
+      padding: 14px 30px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      position: fixed;
+      right: 25px;
+      top: 25px;
+      z-index: 200;
+      font-weight: 700;
+      font-size: 15px;
+      box-shadow: 0 5px 15px rgb(30 136 229 / 0.45);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .toggle-btn:hover {
+      background-color: #1565c0;
+      box-shadow: 0 6px 20px rgb(21 101 192 / 0.7);
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="header">Bank Branch Explorer</div>
+  <button class="toggle-btn" onclick="toggleTheme()">Toggle Theme</button>
+
+  <div class="container">
+    <div class="search-section">
+      <h2>Search Branch by IFSC</h2>
+      <input type="text" id="ifscInput" placeholder="Start typing IFSC code..." oninput="fetchBranchDetails()" />
+    </div>
+
+    <div class="branch-details" id="branchDetails"></div>
+
+    <div class="bank-list">
+      <h2>List of Banks</h2>
+      <table id="bankTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)">Bank Name</th>
+            <th onclick="sortTable(1)">IFSC Code</th>
+            <th onclick="sortTable(2)">Branch</th>
+          </tr>
+        </thead>
+        <tbody id="bankTableBody">
+          <!-- Fetched data will populate here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    async function fetchBranchDetails() {
+      const ifsc = document.getElementById("ifscInput").value.trim();
+      const details = document.getElementById("branchDetails");
+
+      if (ifsc.length < 4) {
+        details.innerHTML = "";
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/branches/${ifsc}/`);
+        if (!res.ok) throw new Error("Branch not found");
+        const data = await res.json();
+        details.innerHTML = `
+          <h3>Branch Details</h3>
+          <p><strong>Bank:</strong> ${data.bank_name}</p>
+          <p><strong>Branch:</strong> ${data.branch}</p>
+          <p><strong>IFSC:</strong> ${data.ifsc}</p>
+          <p><strong>Address:</strong> ${data.address}</p>
+        `;
+      } catch (err) {
+        details.innerHTML = `<p style="color:#f44336">${err.message}</p>`;
+      }
+    }
+
+    async function fetchBanks() {
+      try {
+        const res = await fetch('/api/banks/');
+        const data = await res.json();
+        const tableBody = document.getElementById("bankTableBody");
+        tableBody.innerHTML = "";
+        data.forEach((bank) => {
+          bank.branches.forEach(branch => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${bank.name}</td>
+              <td>${branch.ifsc}</td>
+              <td>${branch.branch}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        });
+      } catch (err) {
+        document.querySelector(".bank-list").innerHTML = "<p style='color:#f44336;'>Failed to fetch banks.</p>";
+      }
+    }
+
+    function sortTable(colIndex) {
+      const table = document.getElementById("bankTable");
+      const rows = Array.from(table.rows).slice(1);
+      const sorted = rows.sort((a, b) => a.cells[colIndex].innerText.localeCompare(b.cells[colIndex].innerText));
+      const body = table.tBodies[0];
+      sorted.forEach(row => body.appendChild(row));
+    }
+
+    fetchBanks();
+  </script>
+</body>
+</html>
